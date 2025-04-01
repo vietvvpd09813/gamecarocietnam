@@ -38,28 +38,18 @@ app.use((req, res, next) => {
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Endpoint chính cho Vercel
+// Endpoint kiểm tra health
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Server is running' });
+  res.status(200).json({ status: 'ok', message: 'Server is running' });
 });
 
-// Serve index.html cho tất cả các route
-app.get('*', (req, res) => {
-  if (req.url.includes('/socket.io/')) {
-    return next(); // Socket.IO xử lý
-  }
-  
-  try {
-    // Kiểm tra xem file tĩnh có tồn tại không
-    const filePath = path.join(__dirname, 'public', req.path);
-    if (require('fs').existsSync(filePath) && !fs.lstatSync(filePath).isDirectory()) {
-      return res.sendFile(filePath);
-    }
-  } catch (err) {
-    console.error("Error checking static file:", err);
-  }
-  
-  // Mặc định phục vụ index.html
+// Endpoint root để trả về index.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Fallback route handler - phải đặt cuối cùng
+app.use('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 

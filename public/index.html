@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="robots" content="index, follow">
+    <meta name="description" content="Game cờ caro trực tuyến Việt Nam với giao diện đẹp và hiệu ứng mượt mà">
     <title>Caro Game - Vietnam</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,6 +17,20 @@
     <link rel="stylesheet" href="css/style.css">
     <!-- Socket.io client from CDN - Update to absolute URL -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz" crossorigin="anonymous"></script>
+    <!-- Fallback script for Socket.io -->
+    <script>
+        // Kiểm tra nếu io không được định nghĩa, thêm script
+        window.addEventListener('DOMContentLoaded', function() {
+            if (typeof io === 'undefined') {
+                console.warn('Socket.io không được tải, đang thử tải lại...');
+                var socketScript = document.createElement('script');
+                socketScript.src = 'https://cdn.socket.io/4.7.2/socket.io.min.js';
+                socketScript.integrity = 'sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz';
+                socketScript.crossOrigin = 'anonymous';
+                document.head.appendChild(socketScript);
+            }
+        });
+    </script>
     <style>
         .grid-cols-15 {
             display: grid;
