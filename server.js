@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -10,33 +11,52 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: '*',
-    methods: ['GET', 'POST'],
-    credentials: true
+    methods: ['GET', 'POST', 'OPTIONS'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization']
   },
-  transports: ['polling'], // Chỉ sử dụng polling, không dùng websocket trên Vercel
-  allowEIO3: true, // Cho phép Engine.IO phiên bản 3
-  pingTimeout: 60000, // Tăng thời gian timeout
-  pingInterval: 25000 // Giảm khoảng thời gian giữa các ping
+  transports: ['polling'],
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000
+});
+
+// Middleware CORS cho Express
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  // Xử lý preflight request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
 });
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve index.html cho tất cả các route để hỗ trợ client-side routing
+// Endpoint chính cho Vercel
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'Server is running' });
+});
+
+// Serve index.html cho tất cả các route
 app.get('*', (req, res) => {
   if (req.url.includes('/socket.io/')) {
-    // Let socket.io handle its requests
-    return;
+    return next(); // Socket.IO xử lý
   }
   
-  // Phục vụ file tĩnh nếu tồn tại
-  const filePath = path.join(__dirname, 'public', req.path);
   try {
-    if (require('fs').existsSync(filePath)) {
+    // Kiểm tra xem file tĩnh có tồn tại không
+    const filePath = path.join(__dirname, 'public', req.path);
+    if (require('fs').existsSync(filePath) && !fs.lstatSync(filePath).isDirectory()) {
       return res.sendFile(filePath);
     }
   } catch (err) {
-    // Bỏ qua lỗi và tiếp tục phục vụ index.html
+    console.error("Error checking static file:", err);
   }
   
   // Mặc định phục vụ index.html
