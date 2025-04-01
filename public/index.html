@@ -113,86 +113,18 @@
                 
                 <h2 class="text-2xl font-bold mb-6 text-center">Chọn chế độ chơi</h2>
                 
-                <div class="flex flex-col md:flex-row gap-4 w-full max-w-md">
-                    <button id="create-room-btn" class="btn-primary group">
-                        <i class="fas fa-plus mr-2 group-hover:rotate-90 transition-transform duration-300"></i>
-                        Tạo phòng mới
+                <div class="flex flex-col gap-4 w-full max-w-md">
+                    <button id="play-computer-btn" class="btn-primary group">
+                        <i class="fas fa-robot mr-2 group-hover:rotate-12 transition-transform duration-300"></i>
+                        Chơi với máy tính
                     </button>
-                    <button id="join-room-btn" class="btn-secondary group">
-                        <i class="fas fa-sign-in-alt mr-2 group-hover:translate-x-1 transition-transform duration-300"></i>
-                        Vào phòng
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Room creation screen -->
-            <div id="create-room-screen" class="hidden p-8 flex flex-col items-center">
-                <h2 class="text-2xl font-bold mb-6">Tạo phòng mới</h2>
-                
-                <div class="w-full max-w-md">
-                    <div class="mb-4">
-                        <label for="new-room-id" class="block text-sm font-medium text-gray-700 mb-1">Mã phòng</label>
-                        <div class="relative">
-                            <input type="text" id="new-room-id" class="input-field pr-10" placeholder="Nhập mã phòng">
-                            <button id="generate-room-id" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-500">
-                                <i class="fas fa-dice"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
                     <div class="flex gap-4">
-                        <button id="create-room-confirm" class="btn-primary flex-1">
-                            <i class="fas fa-check mr-2"></i> Tạo phòng
-                        </button>
-                        <button id="create-room-back" class="btn-secondary flex-1">
-                            <i class="fas fa-arrow-left mr-2"></i> Quay lại
-                        </button>
+                        <select id="difficulty-select" class="input-field flex-grow">
+                            <option value="easy">Dễ</option>
+                            <option value="medium" selected>Trung bình</option>
+                            <option value="hard">Khó</option>
+                        </select>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Join room screen -->
-            <div id="join-room-screen" class="hidden p-8 flex flex-col items-center">
-                <h2 class="text-2xl font-bold mb-6">Vào phòng</h2>
-                
-                <div class="w-full max-w-md">
-                    <div class="mb-4">
-                        <label for="room-id-input" class="block text-sm font-medium text-gray-700 mb-1">Mã phòng</label>
-                        <input type="text" id="room-id-input" class="input-field" placeholder="Nhập mã phòng">
-                    </div>
-                    
-                    <div class="flex gap-4">
-                        <button id="join-room-confirm" class="btn-primary flex-1">
-                            <i class="fas fa-sign-in-alt mr-2"></i> Vào phòng
-                        </button>
-                        <button id="join-room-back" class="btn-secondary flex-1">
-                            <i class="fas fa-arrow-left mr-2"></i> Quay lại
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Wait for opponent screen -->
-            <div id="waiting-screen" class="hidden p-8 flex flex-col items-center">
-                <div class="flex flex-col items-center mb-6">
-                    <div class="relative w-24 h-24 mb-4">
-                        <div class="absolute inset-0 bg-blue-100 rounded-full animate-ping opacity-75"></div>
-                        <div class="relative bg-blue-500 rounded-full w-24 h-24 flex items-center justify-center">
-                            <i class="fas fa-user text-white text-3xl"></i>
-                        </div>
-                    </div>
-                    <h2 class="text-2xl font-bold mb-2">Chờ đối thủ...</h2>
-                    <p class="text-gray-600 mb-4">Mã phòng: <span id="room-id-display" class="font-bold"></span></p>
-                    <p class="text-sm text-gray-500">Chia sẻ mã phòng để mời bạn bè tham gia</p>
-                </div>
-                
-                <div class="flex gap-4">
-                    <button id="copy-room-id" class="btn-secondary">
-                        <i class="fas fa-copy mr-2"></i> Sao chép mã phòng
-                    </button>
-                    <button id="leave-room" class="btn-danger">
-                        <i class="fas fa-sign-out-alt mr-2"></i> Rời phòng
-                    </button>
                 </div>
             </div>
             
@@ -203,7 +135,7 @@
                     <div class="p-6 md:col-span-1 bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
                         <div class="flex justify-between items-center mb-6">
                             <h3 class="text-xl font-semibold">Thông tin</h3>
-                            <span class="text-sm text-gray-500">Phòng: <span id="game-room-id" class="font-medium"></span></span>
+                            <span class="text-sm text-gray-500">Độ khó: <span id="game-difficulty" class="font-medium"></span></span>
                         </div>
                         
                         <div class="space-y-4 mb-8">
@@ -224,28 +156,35 @@
                                         <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
                                             <span class="text-blue-700 font-bold">X</span>
                                         </div>
-                                        <span class="font-medium">Người chơi 1</span>
+                                        <span class="font-medium">Bạn</span>
                                     </div>
-                                    <span id="player-x-status" class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">Bạn</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <div class="flex items-center">
                                         <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-3">
                                             <span class="text-red-700 font-bold">O</span>
                                         </div>
-                                        <span class="font-medium">Người chơi 2</span>
+                                        <span class="font-medium">Máy tính</span>
                                     </div>
-                                    <span id="player-o-status" class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">Đối thủ</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Score display -->
+                            <div class="p-4 bg-white rounded-lg shadow-sm">
+                                <p class="text-sm text-gray-500 mb-2">Điểm số</p>
+                                <div class="flex justify-between items-center">
+                                    <span>Bạn: <span id="player-score" class="font-bold text-blue-600">0</span></span>
+                                    <span>Máy: <span id="computer-score" class="font-bold text-red-600">0</span></span>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="mt-auto">
-                            <button id="restart-game" class="btn-secondary w-full mb-3" disabled>
+                            <button id="restart-game" class="btn-secondary w-full mb-3">
                                 <i class="fas fa-redo mr-2"></i> Chơi lại
                             </button>
-                            <button id="exit-game" class="btn-danger w-full">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Thoát phòng
+                            <button id="back-to-menu" class="btn-danger w-full">
+                                <i class="fas fa-home mr-2"></i> Về menu
                             </button>
                         </div>
                     </div>
@@ -289,4 +228,5 @@
     <!-- Game logic script -->
     <script src="js/main.js"></script>
 </body>
+</html> 
 </html> 
