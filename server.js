@@ -1,14 +1,35 @@
 const express = require('express');
 const http = require('http');
 const path = require('path');
-const socketIO = require('socket.io');
+const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIO(server);
+
+// Check if the environment is Vercel serverless
+const isVercel = process.env.VERCEL || false;
+
+// Create Socket.io server with appropriate CORS settings
+const io = isVercel 
+  ? new Server(server, {
+      cors: {
+        origin: '*',
+        methods: ['GET', 'POST'],
+        credentials: true
+      },
+      path: '/api/socketio'
+    })
+  : new Server(server);
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Handle API route for Vercel
+if (isVercel) {
+  app.post('/api/socketio', (req, res) => {
+    res.json({ message: 'Socket.io API endpoint' });
+  });
+}
 
 // Game state
 const rooms = {};
@@ -198,8 +219,13 @@ function checkDraw(board) {
   return true;
 }
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-}); 
+// Start the server if not running in Vercel
+if (!isVercel) {
+  const PORT = process.env.PORT || 3000;
+  server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+// Export for Vercel serverless function
+module.exports = app; 

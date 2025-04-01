@@ -1,5 +1,21 @@
-// Connect to the server using Socket.io
-const socket = io();
+// Connect to the server using Socket.io with explicit URL
+const socket = io(window.location.origin, {
+    path: '/api/socketio',
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000
+});
+
+// Log connection status
+socket.on('connect', () => {
+    console.log('Connected to server');
+});
+
+socket.on('connect_error', (err) => {
+    console.error('Connection error:', err);
+    showToast('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.', 'error');
+});
 
 // Game state variables
 let currentRoom = null;
@@ -301,10 +317,6 @@ playAgainBtn.addEventListener('click', () => {
 });
 
 // Socket event handlers
-socket.on('connect', () => {
-    console.log('Connected to server');
-});
-
 socket.on('roomCreated', (data) => {
     currentRoom = data.roomId;
     playerSymbol = data.symbol;
