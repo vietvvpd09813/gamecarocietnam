@@ -6,30 +6,42 @@ const { Server } = require('socket.io');
 const app = express();
 const server = http.createServer(app);
 
-// Check if the environment is Vercel serverless
-const isVercel = process.env.VERCEL || false;
-
-// Create Socket.io server with appropriate CORS settings
-const io = isVercel 
-  ? new Server(server, {
-      cors: {
-        origin: '*',
-        methods: ['GET', 'POST'],
-        credentials: true
-      },
-      path: '/api/socketio'
-    })
-  : new Server(server);
+// Cấu hình CORS cho Socket.IO
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+    credentials: true
+  },
+  transports: ['polling'], // Chỉ sử dụng polling, không dùng websocket trên Vercel
+  allowEIO3: true, // Cho phép Engine.IO phiên bản 3
+  pingTimeout: 60000, // Tăng thời gian timeout
+  pingInterval: 25000 // Giảm khoảng thời gian giữa các ping
+});
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Handle API route for Vercel
-if (isVercel) {
-  app.post('/api/socketio', (req, res) => {
-    res.json({ message: 'Socket.io API endpoint' });
-  });
-}
+// Serve index.html cho tất cả các route để hỗ trợ client-side routing
+app.get('*', (req, res) => {
+  if (req.url.includes('/socket.io/')) {
+    // Let socket.io handle its requests
+    return;
+  }
+  
+  // Phục vụ file tĩnh nếu tồn tại
+  const filePath = path.join(__dirname, 'public', req.path);
+  try {
+    if (require('fs').existsSync(filePath)) {
+      return res.sendFile(filePath);
+    }
+  } catch (err) {
+    // Bỏ qua lỗi và tiếp tục phục vụ index.html
+  }
+  
+  // Mặc định phục vụ index.html
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // Game state
 const rooms = {};
@@ -37,6 +49,15 @@ const rooms = {};
 // Socket.io connection handling
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
+
+  // Thêm heartbeat để giữ kết nối
+  const intervalId = setInterval(() => {
+    socket.emit('ping');
+  }, 25000);
+
+  socket.on('pong', () => {
+    console.log(`Received pong from ${socket.id}`);
+  });
 
   // Create a new game room
   socket.on('createRoom', (roomId) => {
@@ -140,6 +161,7 @@ io.on('connection', (socket) => {
 
   // Handle player disconnection
   socket.on('disconnect', () => {
+    clearInterval(intervalId);
     console.log('User disconnected:', socket.id);
     
     // Find and clean up any rooms the player was in
@@ -219,13 +241,13 @@ function checkDraw(board) {
   return true;
 }
 
-// Start the server if not running in Vercel
-if (!isVercel) {
-  const PORT = process.env.PORT || 3000;
+// Start the server
+const PORT = process.env.PORT || 3000;
+if (process.env.NODE_ENV !== 'production') {
   server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
 }
 
-// Export for Vercel serverless function
-module.exports = app; 
+// Xuất app cho Vercel
+module.exports = server; 

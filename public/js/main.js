@@ -1,20 +1,69 @@
+// Kiểm tra xem io đã được định nghĩa chưa
+if (typeof io === 'undefined') {
+    console.error('Socket.io client không được tải. Đang tải lại trang...');
+    // Nếu không tìm thấy io, thêm thẻ script vào trang
+    const script = document.createElement('script');
+    script.src = 'https://cdn.socket.io/4.7.2/socket.io.min.js';
+    script.integrity = 'sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz';
+    script.crossOrigin = 'anonymous';
+    script.onload = () => window.location.reload();
+    document.head.appendChild(script);
+    // Hiển thị thông báo lỗi
+    const errorMsg = document.createElement('div');
+    errorMsg.innerHTML = `
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.9); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px; text-align: center;">
+            <h2 style="color: #e53e3e; margin-bottom: 20px; font-size: 24px;">Lỗi kết nối</h2>
+            <p style="margin-bottom: 20px; max-width: 600px;">Không thể kết nối đến máy chủ. Đang tải lại trang...</p>
+            <div style="width: 50px; height: 50px; border: 5px solid #e2e8f0; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        </div>
+        <style>
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
+    `;
+    document.body.appendChild(errorMsg);
+    throw new Error('Socket.io client không được tải.');
+}
+
 // Connect to the server using Socket.io with explicit URL
-const socket = io(window.location.origin, {
-    path: '/api/socketio',
-    transports: ['websocket', 'polling'],
-    reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000
-});
+let socket;
+try {
+    // Kiểm tra nếu đang chạy trên Vercel
+    const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+    const socketURL = isProduction ? window.location.origin : 'http://localhost:3000';
+    
+    console.log('Connecting to Socket.io server at:', socketURL);
+    
+    socket = io(socketURL, {
+        transports: ['polling'], // Chỉ sử dụng polling trên Vercel, không dùng websocket
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+        timeout: 20000
+    });
+    
+    console.log('Socket instance created:', socket);
+} catch (error) {
+    console.error('Error initializing socket:', error);
+    alert('Không thể kết nối đến máy chủ. Vui lòng tải lại trang.');
+}
 
 // Log connection status
 socket.on('connect', () => {
-    console.log('Connected to server');
+    console.log('Connected to server with ID:', socket.id);
 });
 
 socket.on('connect_error', (err) => {
     console.error('Connection error:', err);
     showToast('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.', 'error');
+});
+
+// Xử lý heartbeat
+socket.on('ping', () => {
+    console.log('Received ping, sending pong');
+    socket.emit('pong');
 });
 
 // Game state variables

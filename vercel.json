@@ -11,21 +11,7 @@
     }
   ],
   "routes": [
-    {
-      "src": "/api/socketio",
-      "dest": "server.js"
-    },
-    {
-      "src": "/socket.io/(.*)",
-      "dest": "/api/socketio"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/public/$1"
-    },
-    {
-      "src": "/",
-      "dest": "/public/index.html"
-    }
+    { "src": "/socket.io/(.*)", "dest": "/server.js" },
+    { "src": "/(.*)", "dest": "/server.js" }
   ]
 } 
